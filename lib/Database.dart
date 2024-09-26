@@ -1,0 +1,132 @@
+import 'package:expense/model/expensemodel.dart';
+import 'package:expense/model/usermodel.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+
+
+class DbHelper {
+
+   DbHelper._();
+  static DbHelper getInstance()=> DbHelper._();
+  ///login_id
+  static final String login_uid="uid";
+  ///table names
+  static final  String user_table= "users";
+  static final String expense_table= "expenses";
+  static final String categgories_table= "categories";
+  ///table_user_columns
+
+
+   static final  String Column_user_id="uId";
+   static final  String Column_user_email="uemail";
+   static final  String Column_user_name="uname";
+   static final  String Column_user_pass="upass";
+
+   ///table_expense_column
+   static final  String Column_expense_id="expId";
+   static final  String Column_expense_amount="amt";
+   static final  String Column_expense_date='date';
+   static final String Column_expense_type= "type";
+   static final String Column_expense_title= "title";
+   static final String Column_expense_desc= "desc";
+   static final String C0lumn_expense_remaining_balance="balance";
+
+   ///table categories_column
+
+   static final String Column_category_id =" cId";
+   static final String Column_category_petrol="petrol";
+   static final String Column_category_rent=" rent";
+   static final String Column_category_restaurant= "restaureant";
+   static final String Column_category_fee= "fees";
+   static final String Column_category_others= "other";
+
+
+   Database? mdb;
+   Future<Database> getdb() async{
+     if(mdb !=null){
+       return mdb!;
+     }else {
+       mdb= await openDb();
+       return mdb!;
+     }
+   }
+   Future<Database> openDb() async{
+     var appdir=  await getApplicationDocumentsDirectory();
+     var dbpath= join(appdir.path, "todo.db");
+     return openDatabase(dbpath,version: 1, onCreate: (db,version){
+       db.execute(
+         "create table $user_table ( $Column_user_id integer primary key autoincrement, $Column_user_email  text unique , $Column_user_name text , $Column_user_pass text) "
+
+       );
+       db.execute(
+         "create table $expense_table ( $Column_expense_id integer primary key autoincrement, $Column_user_id integer, $Column_expense_amount integer, $Column_expense_date text, $Column_expense_title  text , $Column_expense_desc text, $C0lumn_expense_remaining_balance )  "
+       );
+       db.execute(
+         " create table $categgories_table ( $Column_category_id integer primary key auto increment, $Column_category_petrol text, $Column_category_fee integer, $Column_category_rent text, $Column_category_restaurant text , $Column_category_others text ) "
+       );
+
+     });
+  }
+ Future<bool> addexpense(expenseModel addexpense)async {
+     var uid= await getuid();
+     addexpense.userId=uid;
+     var db= await getdb();
+    var rowseffected= await db.insert(expense_table, addexpense.toMap());
+    return rowseffected>0;
+ }
+ Future<List<expenseModel>> getexpense() async {
+
+     var db= await getdb();
+     var uid= await getuid();
+     List<expenseModel> mdata=[];
+   var data= await  db.query(expense_table,where: "$Column_user_id=?",whereArgs: ["$uid"]);
+   for(Map<String,dynamic> eachMap in data  ){
+     var expensemodel= expenseModel.fromMap(eachMap);
+     mdata.add(expensemodel);
+   }
+   return mdata;
+ }
+ void update(expenseModel updatedata) async {
+   var db= await getdb();
+   db.update(expense_table, updatedata.toMap(), where: "$Column_expense_id =?", whereArgs: [
+    " ${updatedata.expenseId }"]);
+
+ }
+ Future<bool> addnewuser( userModal newuser) async{
+     var db= await getdb();
+     bool authe=  await checkforuser(newuser.uemail);
+     bool  accCreated= false;
+     if(!authe){
+     var rowseffected=  await  db.insert(user_table, newuser.toMap());
+     authe= rowseffected>0;
+     }
+    return accCreated;
+ }
+Future<bool> checkforuser(String email) async{
+     var db = await getdb();
+   var data= await  db.query(user_table, where: "$Column_user_email= ?", whereArgs:  [email]);
+   if(data.isNotEmpty){
+     setuid(userModal.fromMap(data[0]).uid);
+   }
+   return data.isNotEmpty;
+}
+Future<bool> authenticateUser(String email, String pass) async{
+     var db = await getdb();
+     var data= await db.query(user_table, where: "$Column_user_email=? AND $Column_user_pass=? ", whereArgs: [email,pass]);
+     return data.isNotEmpty;
+}
+Future<int> getuid() async{
+  var prefs= await  SharedPreferences.getInstance();
+ return  prefs.getInt("uid")!;
+
+}
+  void setuid(int uid) async{
+     var prefs= await  SharedPreferences.getInstance();
+     prefs.setInt("uid", uid);
+
+  }
+
+
+}
