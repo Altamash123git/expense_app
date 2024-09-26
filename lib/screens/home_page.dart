@@ -164,7 +164,6 @@ child: ListView.builder(
          mainAxisAlignment: MainAxisAlignment.spaceBetween,
          children: [
            IconButton(onPressed: (){}, icon: Icon(Icons.home)),
-           IconButton(onPressed: (){}, icon: Icon(Icons.graphic_eq)),
            IconButton(onPressed: (){}, icon: Icon(Icons.add,size: 25,)),
            IconButton(onPressed: (){}, icon: Icon(Icons.notifications)),
            IconButton(onPressed: ()async{
