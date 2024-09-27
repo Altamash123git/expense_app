@@ -1,4 +1,6 @@
 import 'package:expense/screens/home_page.dart';
+import 'package:expense/screens/login_page.dart';
+import 'package:expense/screens/nav_page.dart';
 import 'package:expense/screens/signIn_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -16,14 +18,19 @@ class splash_screen extends StatefulWidget {
 class _splash_screenState extends State<splash_screen> {
 
   void initState(){
+    super.initState();
     Timer(Duration(seconds: 5),()async{
 var pref= await SharedPreferences.getInstance();
- bool? check= pref.getBool(homepage.login_key);
- if(check!=null){
-   check?  Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>homepage())):Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>signin()));
+ //bool? check= pref.getBool(homepage.login_key);
+ var get= pref.getInt("UID");
+ print(get);
+
+get==0 ||get== null ?Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>login_page())) :Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>nav_page()));
+ /*if(check!=null){
+   check ?  Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>nav_page())):Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>signin()));
  }else{
    Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>signin()));
- }
+ }*/
 
     });
   }

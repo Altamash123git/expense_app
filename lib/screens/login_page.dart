@@ -1,6 +1,7 @@
 
 import 'package:expense/model/usermodel.dart';
 import 'package:expense/screens/login_page.dart';
+import 'package:expense/screens/nav_page.dart';
 import 'package:expense/screens/signIn_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -98,18 +99,24 @@ class _login_pageState extends State<login_page> {
             ),
           ),
           ElevatedButton(onPressed: ()async{
-            var check= await dbHelper.authenticateUser(emailcontroller.text.toString(), paswrdcontroller.text.toString());
+            var check = await dbHelper.authenticateUser(emailcontroller.text.toString(), paswrdcontroller.text.toString());
             if (check){
               var pref= await SharedPreferences.getInstance();
-              pref.setBool(homepage.login_key, true);
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>homepage()));
+             var get= pref.getInt("UID");
+
+             print(get);
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>nav_page()));
             } else{
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("user not found, "), action: SnackBarAction(label: "create account", onPressed:(){Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>signin()));}),));
             }
 
 
 
-          }, child: Text("log  in"))
+          },
+              child: Text("log  in")),
+          TextButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (c)=>signin()));
+          }, child:Text("didn't have accout, create one"))
         ],
       ),
     );

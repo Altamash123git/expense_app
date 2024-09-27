@@ -1,8 +1,2 @@
-abstract class expenseEvent{}
+ abstract class expeneEvent{}
 
-class loading_state extends expenseEvent{
-
-}
-class loaded_state  extends expenseEvent{
-
-}

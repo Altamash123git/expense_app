@@ -100,7 +100,7 @@ class DbHelper {
      bool  accCreated= false;
      if(!authe){
      var rowseffected=  await  db.insert(user_table, newuser.toMap());
-     authe= rowseffected>0;
+     accCreated= rowseffected>0;
      }
     return accCreated;
  }
@@ -115,18 +115,23 @@ Future<bool> checkforuser(String email) async{
 Future<bool> authenticateUser(String email, String pass) async{
      var db = await getdb();
      var data= await db.query(user_table, where: "$Column_user_email=? AND $Column_user_pass=? ", whereArgs: [email,pass]);
+     if(data.isNotEmpty) {
+       setuid(userModal.fromMap(data[0]).uid);
+     }
      return data.isNotEmpty;
 }
 Future<int> getuid() async{
   var prefs= await  SharedPreferences.getInstance();
- return  prefs.getInt("uid")!;
+ return  prefs.getInt("UID")!;
 
 }
   void setuid(int uid) async{
+     //var prefs= await  SharedPreferences.getInstance();
      var prefs= await  SharedPreferences.getInstance();
-     prefs.setInt("uid", uid);
+     prefs.setInt("UID", uid);
+  }
 
   }
 
 
-}
+
