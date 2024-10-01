@@ -6,65 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'home_page.dart';
 
-/*class static_page extends StatelessWidget {
-  const static_page({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Statistic",style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),),
-        actions: [],
-      ),
-      body: Container(
-        width: double.infinity,
-        margin: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
-        child: Column(
-          children: [
-            Expanded(
-                flex: 1,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15),
-                  width: double.infinity,
-                  color: Color(0XFF6573D3),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Total expense",style: TextStyle(color: Colors.white,fontSize: 19 ),),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                         text: "3,734" ,style: TextStyle(fontSize: 25,fontWeight:FontWeight.bold,color: Colors.white ),
-                            ),
-                          TextSpan(
-                            text: "/ 4000 per month",style: TextStyle(color: Colors.grey )
-
-                          )
-                          ]
-                        ),
-
-
-                      ),
-                    ],
-                  ),
-                )),
-            Expanded(
-                flex: 5,
-                child: Container(
-
-            ))
-          ],
-        ),
-      ),
-
-    );
-  }
-}*/
 class static_page extends StatefulWidget {
   @override
   State<static_page> createState() => _StaticDetailsState();
@@ -400,6 +342,8 @@ class _StaticDetailsState extends State<static_page> {
                   child: SizedBox(
                     height: 400, // Provide a fixed height
                     child: GridView.builder(
+                      physics: NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
                       itemCount: Carddata.length,
                       itemBuilder: (context, index) {
                         return Card(
@@ -430,6 +374,7 @@ class _StaticDetailsState extends State<static_page> {
                                     width: 10,
                                   ),
                                   Expanded(
+                                    flex: 2,
                                     child: Column(
                                       mainAxisAlignment:
                                       MainAxisAlignment.center,

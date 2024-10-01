@@ -25,22 +25,20 @@ class DbHelper {
    static final  String Column_user_pass="upass";
 
    ///table_expense_column
-   static final  String Column_expense_id="expId";
-   static final  String Column_expense_amount="amt";
-   static final  String Column_expense_date='date';
+   static final  String Column_expense_id= "expId";
+   static final  String Column_expense_amount= "amt";
+   static final  String Column_expense_date= 'date';
    static final String Column_expense_type= "type";
    static final String Column_expense_title= "title";
    static final String Column_expense_desc= "desc";
-   static final String C0lumn_expense_remaining_balance="balance";
+   static final String Column_expense_remaining_balance= "balance";
 
    ///table categories_column
 
-   static final String Column_category_id =" cId";
-   static final String Column_category_petrol="petrol";
-   static final String Column_category_rent=" rent";
-   static final String Column_category_restaurant= "restaureant";
-   static final String Column_category_fee= "fees";
-   static final String Column_category_others= "other";
+   static final String Column_category_id = "cId";
+   static final String Column_category_name="cName";
+   static final String Column_category_img="img";
+
 
 
    Database? mdb;
@@ -61,11 +59,10 @@ class DbHelper {
 
        );
        db.execute(
-         "create table $expense_table ( $Column_expense_id integer primary key autoincrement, $Column_user_id integer, $Column_expense_amount integer, $Column_expense_date text, $Column_expense_title  text , $Column_expense_desc text, $C0lumn_expense_remaining_balance )  "
-       );
+         " create table $expense_table ( $Column_expense_id integer primary key autoincrement, $Column_user_id integer, $Column_category_id integer, $Column_expense_amount real, $Column_expense_date text, $Column_expense_title  text , $Column_expense_desc text, $Column_expense_remaining_balance real , $Column_expense_type text )");
+
        db.execute(
-         " create table $categgories_table ( $Column_category_id integer primary key auto increment, $Column_category_petrol text, $Column_category_fee integer, $Column_category_rent text, $Column_category_restaurant text , $Column_category_others text ) "
-       );
+         " create table $categgories_table ( $Column_category_id integer primary key autoincrement, $Column_category_name text, $Column_category_img text ) ");
 
      });
   }
@@ -73,7 +70,9 @@ class DbHelper {
      var uid= await getuid();
      addexpense.userId=uid;
      var db= await getdb();
+
     var rowseffected= await db.insert(expense_table, addexpense.toMap());
+     print(" ye hai: ${addexpense.toMap()}");
     return rowseffected>0;
  }
  Future<List<expenseModel>> getexpense() async {
@@ -85,6 +84,9 @@ class DbHelper {
    for(Map<String,dynamic> eachMap in data  ){
      var expensemodel= expenseModel.fromMap(eachMap);
      mdata.add(expensemodel);
+     print(expensemodel);
+     print(" this is ${mdata[0].category_id}");
+     //print(" this is: $mdata");
    }
    return mdata;
  }
@@ -126,7 +128,8 @@ Future<int> getuid() async{
 
 }
   void setuid(int uid) async{
-     //var prefs= await  SharedPreferences.getInstance();
+
+
      var prefs= await  SharedPreferences.getInstance();
      prefs.setInt("UID", uid);
   }
