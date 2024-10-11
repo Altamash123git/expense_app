@@ -24,7 +24,7 @@ class _loginpageState extends State<signin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xfff6f6f6),
+      backgroundColor: Theme.of(context).brightness==Brightness.light?Color(0xFFF6F6F6):Colors.black,
       appBar: AppBar(
         backgroundColor: Color(0xfff6f6f6),
         title: Text("Welcome"),
@@ -126,30 +126,33 @@ class _loginpageState extends State<signin> {
                       //maximumSize: Size(500, 30),
                       minimumSize: Size(300, 40)),
                   onPressed: () async {
-                    var check = await dbHelper.addnewuser(userModal(
-                        uemail: emailcontroller.text,
-                        uid: 0,
-                        uname: namecontroller.text,
-                        upass: paswrdcontroller.text));
-                    if (check) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('account created succesfully')));
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (c) => login_page()));
-                    } else {
-                      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>loginpage()));
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text("already account created,  "),
-                        action: SnackBarAction(
-                            label: "log in",
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (c) => login_page()));
-                            }),
-                      ));
+                    if(namecontroller.text.isNotEmpty && paswrdcontroller.text.isNotEmpty){
+                      var check = await dbHelper.addnewuser(userModal(
+                          uemail: emailcontroller.text,
+                          uid: 0,
+                          uname: namecontroller.text,
+                          upass: paswrdcontroller.text));
+                      if (check) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('account created succesfully')));
+                        Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (c) => login_page()));
+                      } else {
+                        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (c)=>loginpage()));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("already account created,  "),
+                          action: SnackBarAction(
+                              label: "log in",
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => login_page()));
+                              }),
+                        ));
+                      }
                     }
+
                   },
                   child: Text(
                     "signin",

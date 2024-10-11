@@ -47,26 +47,28 @@ get==0 ||get== null ?Navigator.pushReplacement(context, MaterialPageRoute(builde
 Container(
   height: 20,
 
-    child: Image.asset("assets/img/Image20240925213656.jpg")),
+    child: Image.asset("assets/img/Image20240925213656.jpg",color:  Theme.of(context).brightness==Brightness.light?Color(0xFFF6F6F6):Colors.black,)),
             Text("Monety")
 
           ],
         ),
 
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Container(
-              margin: EdgeInsets.only(top: 30,left: 10,right: 10),
-              child: Image.asset("assets/img/Image20240925213523.png"),
-
-            ),
-            SizedBox(height: 10,),
-            Text("Easy Way To Monitor\nYour Expenses", style: TextStyle(fontSize: 35,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
-            SizedBox(height: 6,),
-            Text("Safe your future by managing your\nexpense right now",style: TextStyle(fontSize: 20,color: Colors.grey),textAlign:TextAlign.center ,)
-          ],
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            children: [
+              Container(
+                margin: EdgeInsets.only(top: 30,left: 10,right: 10),
+                child: Image.asset("assets/img/Image20240925213523.png"),
+        
+              ),
+              SizedBox(height: 10,),
+              Text("Easy Way To Monitor\nYour Expenses", style: TextStyle(fontSize: 35,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+              SizedBox(height: 6,),
+              Text("Safe your future by managing your\nexpense right now",style: TextStyle(fontSize: 20,color: Colors.grey),textAlign:TextAlign.center ,)
+            ],
+          ),
         ),
       ),
     );

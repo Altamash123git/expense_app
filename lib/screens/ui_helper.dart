@@ -8,9 +8,14 @@ required String hint,
 
 }){
   return InputDecoration(
+
     hintText: hint,
+
     label:Text(label),
-    focusedBorder:OutlineInputBorder( borderRadius:  BorderRadius.circular(borderRadius),),
+    focusedBorder:OutlineInputBorder(
+
+
+      borderRadius:  BorderRadius.circular(borderRadius),),
     enabledBorder: OutlineInputBorder( borderRadius:  BorderRadius.circular(borderRadius),)
 
   );

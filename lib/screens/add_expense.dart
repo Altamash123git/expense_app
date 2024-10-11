@@ -33,13 +33,14 @@ class _add_expenseState extends State<add_expense> {
       titlecontroller.text= AppConstant.mCat[selectedIndex].Category_name;
     }
     return Scaffold(
-      backgroundColor: Color(0xfff6f6f6),
+      backgroundColor: Theme.of(context).brightness==Brightness.light?Color(0xFFF6F6F6):Colors.black,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(11.0),
           child: Column(
             children: [
               TextField(
+
                 controller: titlecontroller,
                 decoration: mTextfilDecor(hint: "enter your expense title", label: "title"),
         

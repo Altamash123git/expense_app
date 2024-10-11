@@ -1,18 +1,22 @@
 import 'package:expense/Database.dart';
 import 'package:expense/block_helper/block_event.dart';
 import 'package:expense/block_helper/block_execute.dart';
+import 'dart:math';
 import 'package:expense/block_helper/block_state.dart';
 import 'package:expense/model/expensemodel.dart';
 import 'package:expense/screens/signIn_page.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/each_date_expense.dart';
-import 'home_page.dart';
-
 
 class static_page extends StatefulWidget {
   @override
@@ -20,9 +24,10 @@ class static_page extends StatefulWidget {
 }
 
 class _StaticDetailsState extends State<static_page> {
-
-  DbHelper dbHelper= DbHelper.getInstance();
+  DbHelper dbHelper = DbHelper.getInstance();
   List<FilterExpenseModel> mFilterData = [];
+
+
   final List<Map<String, dynamic>> Carddata = [
     {
       'name': 'Shop',
@@ -63,52 +68,298 @@ class _StaticDetailsState extends State<static_page> {
     "This Week",
     "This Month",
     "This Year",
-
   ];
-@override
-void initState(){
-  super.initState();
-  context.read<expensebloc>().add(getExpenseEvt());
-  setState(() {
+  @override
+  void initState() {
+    super.initState();
+    context.read<expensebloc>().add(getExpenseEvt());
+    setState(() {});
+  }
 
-  });
-}
   @override
   Widget build(BuildContext context) {
+    var mediaQuery= MediaQuery.of(context);
+    bool isLandscape= MediaQuery.of(context).orientation==Orientation.landscape;
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Color(0xFFF6F6F6),
+        backgroundColor: Theme.of(context).brightness==Brightness.light?Color(0xFFF6F6F6):Colors.black,
         body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20),
-            child: Column(
+            child: isLandscape ?Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      children: [
+                        beforeGraph(),
+                        afeterGraph(),
+                      ],
+                    
+                    ),
+                  ),
+                  //SizedBox(width: 10,),
+                  Expanded(
+                      flex: 3,
+                      child: graphPart())
+                ],
+
+              ),
+            ):Column(
               children: [
-                Padding(
-                  padding:
-                  const EdgeInsets.symmetric(vertical: 15.0, horizontal: 5),
+                beforeGraph(),
+                graphPart(),
+                afeterGraph(),
+
+              ],
+
+            )
+        ),
+      ),
+    );
+  }
+
+  Widget graphPart(){
+    return LayoutBuilder(
+      builder: (context,constraints) {
+        return Column(
+          //crossAxisAlignment: CrossAxisAlignment.start,
+          //mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 6.0, vertical: 10),
+              child: Container(
+                width: constraints.maxWidth ,
+                child: FittedBox(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Statistic',
+                        'Expense Breakdown',
                         style: TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.w700),
+                            fontSize: 20, fontWeight: FontWeight.w600),
+                      ),
+                      SizedBox(
+                        width:constraints.maxWidth*0.22 ,
+                      ),
+                      DropdownMenu(
+                          inputDecorationTheme: InputDecorationTheme(
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(width: 1))),
+                          initialSelection: filtermenu[0],
+
+                          //initialSelectedmenu,
+                          //width: 120,
+                          onSelected: (
+                              value,
+
+
+                              ) {
+                            initialSelectedmenu = value!;
+
+
+                            setState(() {
+                              //initialSelected=value!;
+                              if (value == filtermenu[0]) {
+                                initialSelected = 0;
+                              } else if (value == filtermenu[1]) {
+                                initialSelected = 1;
+                              } else if (value == filtermenu[2]) {
+                                initialSelected = 2;
+                              }
+                            });
+                          },
+                          dropdownMenuEntries: filtermenu
+                              .map((element) => DropdownMenuEntry(
+                              value: element, label: element))
+                              .toList()),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Container(
+              //color: Colors.blue,
+              //padding: EdgeInsets.symmetric(horizontal: 10),
+              width: double.infinity,
+              height: 350,
+              child: BlocBuilder<expensebloc, expensestate>(
+                  builder: (c, state) {
+                    if (state is loading_state) {
+                      return CircularProgressIndicator();
+                    }
+                    if (state is loaded_state) {
+                      FilterExpenseDteWise(state.mdata);
+                      //var alldata= state.mdata;
+
+                      if (state.mdata.isNotEmpty) {
+                        List<BarChartGroupData> mbars = [];
+                        List<PieChartSectionData> msection = [];
+
+                        /*
+                           for(int i=0;i<state.mdata.length;i ++){
+                              mbars.add(BarChartGroupData(x: i,barRods: [BarChartRodData(toY: alldata[i].totalAmt.toDouble())]));
+                            }*/
+
+                        for (int i = 0; i < mFilterData.length; i++) {
+                          mbars.add(BarChartGroupData(x: i, barRods: [
+                            BarChartRodData(
+                                toY: mFilterData[i].totalAmt.toDouble(),
+                                width: 30,
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    topRight: Radius.circular(10))),
+                          ]));
+                          msection.add(PieChartSectionData(
+                              value: mFilterData[i].totalAmt.toDouble(),
+                              title: mFilterData[i].title,
+                              color: _getRandomColor(),
+                              //showTitle: true,
+
+                              radius: 100));
+                        }
+
+                        return  BarChart(BarChartData(
+                          barTouchData: BarTouchData(
+                              touchTooltipData: BarTouchTooltipData(
+                                  getTooltipColor: (_) => Colors.blueGrey,
+                                  tooltipMargin: -10,
+                                  getTooltipItem: (group, grpIdx, rod, rodIdx) {
+                                    String toolTipName =
+                                    //mFilterData[group.x].mexpense[rodIdx].expense_title;
+                                    mFilterData[group.x].title;
+                                    return BarTooltipItem(
+                                      toolTipName,
+                                      TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    );
+                                  })),
+                          titlesData: FlTitlesData(
+                            show: true,
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  return SideTitleWidget(
+                                    axisSide: meta.axisSide,
+                                    space: 16,
+                                    child: //Text(value.toString()),
+                                    Text((mFilterData[value.toInt()]
+                                        .title
+                                        .toString())),
+                                  );
+                                },
+                                reservedSize: 35,
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                //maxIncluded: true,
+                                //minIncluded: true,
+
+                                showTitles: true,
+
+                                getTitlesWidget: (value, meta) {
+                                  return SideTitleWidget(
+                                      axisSide: meta.axisSide,
+                                      space: 1,
+                                      child: Text(
+                                        value.toString(),
+                                        style: TextStyle(fontSize: 12),
+                                      )
+
+                                    //Text(alldata[value.toInt()].expene_type.toString()),
+
+                                  );
+                                },
+
+                                reservedSize: 40,
+                              ),
+                            ),
+                          ),
+                          //borderData: FlBorderData(show: false),
+                          gridData: FlGridData(show: false),
+                          barGroups: mbars,
+                        ));
+                        /*  PieChart(PieChartData(
+                              centerSpaceRadius: 50,
+
+                              sectionsSpace: 10,
+                              sections:msection
+                            ));*/
+
+
+                      } else {
+                        return Center(
+                          child: Text("no expense yet"),
+                        );
+                      }
+                    }
+                    return Container();
+                  }),
+            ),
+
+          ],
+        );
+      }
+    );
+  }
+  Widget beforeGraph(){
+    return
+      LayoutBuilder(
+      builder: (context,constraints) {
+        return 
+          Column(
+          children: [
+            Padding(
+              padding:
+              const EdgeInsets.symmetric(vertical: 15.0, horizontal: 5),
+              child:
+              Container(
+                width: constraints.maxWidth,
+                child: FittedBox(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                  
+                      Text(
+                        'Statistic' ,
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w700),
+                      ),
+                      SizedBox(
+                        width: constraints.maxWidth*0.22,
                       ),
                       Container(
-                        height: 40,
-                        width: 120,
+
+
                         decoration: BoxDecoration(
                             color: const Color(0xFFD7DDFF),
                             borderRadius: BorderRadius.circular(6)),
-                       child:
+                        child: Row(
 
-                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+
                             Text(
                               'This Month',
                               style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w700),
+                                  fontSize: 20, fontWeight: FontWeight.w700),
                             ),
                             SizedBox(
                               width: 5,
@@ -120,474 +371,310 @@ void initState(){
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: 25,
+              ),
+            ),
+            SizedBox(
+              height: 25,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Container(
+                height: constraints.maxWidth*0.35,
+                width: constraints.maxWidth,
+                alignment: Alignment.topLeft,
+
+
+                //height: 130,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6574D3),
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Container(
-                    width: double.infinity,
-                    height: 130,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF6574D3),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Row(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10.0,top: 11),
+                  child:
+                  FittedBox(
+                    child: Column(
+                      //mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Total expense',
+                        Container(
+                          width: constraints.maxWidth*0.3,
+                          child: FittedBox(
+                            child: Text(
+                              'Total expense',
+                              style: TextStyle(
+                                  fontSize:20,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white),
+                            ),
+                          ),
+                        ),
+
+                        Container(
+                          width: constraints.maxWidth*0.7,
+                          padding: EdgeInsets.all(11),
+                          child: FittedBox(
+                            child: Row(
+                              //mainAxisAlignment: MainAxisAlignment.center,
+                              //mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text.rich(
+                                  TextSpan(
+                                    text: '\$3734',
                                     style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white),
-                                  ),
-                                  SizedBox(
-                                    width: 120,
-                                  ),
-                                  Container(
-                                    height: 40,
-                                    width: 40,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF8490DC),
-                                      borderRadius: BorderRadius.circular(25),
-                                      // shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.more_horiz,
                                       color: Colors.white,
+                                      fontSize: 30,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text.rich(
+                                    children: <TextSpan>[
                                       TextSpan(
-                                        text: '\$3734',
+                                        text: ' / \$4000 per month',
                                         style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 30,
-                                        ),
-                                        children: <TextSpan>[
-                                          TextSpan(
-                                            text: ' / \$4000 per month',
-                                            style: TextStyle(
-                                                color: const Color(0xFFAAB1E5),
-                                                fontSize: 14),
-                                          ),
-                                        ],
+                                            color: const Color(0xFFAAB1E5),
+                                            fontSize: 14),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Stack(
-                                children: [
-                                  Container(
-                                    width: 300,
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        SizedBox(
+                          width: constraints.maxWidth*0.8,
+                          height: constraints.maxWidth*0.03,
+
+                          child: FittedBox(
+                            //fit: BoxFit.fill ,
+
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 300,
+                                  // width: double.infinity,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFF5867Bc),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                ),
+                                Positioned(
+                                  child: Container(
+                                    width: 240,
                                     // width: double.infinity,
                                     height: 10,
                                     decoration: BoxDecoration(
-                                      color:
-                                      Color(0xFF5867Bc),
+                                      color: const Color(0xFFEBC68F),
                                       borderRadius: BorderRadius.circular(25),
                                     ),
                                   ),
-                                  Positioned(
-                                    child: Container(
-                                      width: 240,
-                                      // width: double.infinity,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEBC68F),
-                                        borderRadius: BorderRadius.circular(25),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: 15,
-                ),
-                Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 6.0, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Expense Breakdown',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w600),
-                      ),
-
-                      DropdownMenu(
-
-
-                          inputDecorationTheme: InputDecorationTheme(
-                              enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(width: 1))),
-                          initialSelection: filtermenu[0],
-
-                          //initialSelectedmenu,
-                          width: 120,
-                          onSelected: (
-                              value,
-                              ) {
-                            initialSelectedmenu = value!;
-                            setState(() {
-                              //initialSelected=value!;
-                              if (value == filtermenu[0]) {
-
-                                initialSelected = 0;
-
-                              } else if (value == filtermenu[1]) {
-
-                                initialSelected = 1;
-                              } else if (value == filtermenu[2]) {
-
-                                initialSelected = 2;
-
-                              }
-                            });
-                          },
-                          dropdownMenuEntries: filtermenu
-                              .map((element) =>
-                              DropdownMenuEntry(value: element, label: element))
-                              .toList()),
-                    ],
-                  ),
-                ),SizedBox(height: 10,),
-                Container(
-                  //padding: EdgeInsets.symmetric(horizontal: 10),
-                  width: double.infinity,
-                  height: 350,child: BlocBuilder<expensebloc,expensestate>(builder: (c,state){
-                    if(state is loading_state){
-                      return CircularProgressIndicator();
-
-                    }
-                    if(state is loaded_state){
-                      FilterExpenseDteWise(state.mdata);
-                      var alldata= state.mdata;
-
-                      if(state.mdata.isNotEmpty){
-                        List<BarChartGroupData> mbars=[];
-
-                    /*
-                       for(int i=0;i<state.mdata.length;i ++){
-                          mbars.add(BarChartGroupData(x: i,barRods: [BarChartRodData(toY: alldata[i].totalAmt.toDouble())]));
-                        }*/
-
-                        for(int i = 0; i<mFilterData.length; i++){
-                          mbars.add(BarChartGroupData(x: i, barRods: [
-                            BarChartRodData(toY:mFilterData[i].totalAmt.toDouble(),width: 20,borderRadius: BorderRadius.circular(5)),
-                          ]) );
-                        }
-                        return BarChart(BarChartData(
-                         barTouchData: BarTouchData(
-                           touchTooltipData: BarTouchTooltipData(
-                             getTooltipColor: (_)=>Colors.blueGrey,
-                             tooltipMargin: -10,
-                             getTooltipItem: (group, grpIdx,rod, rodIdx){
-                               String toolTipName=
-                                   //mFilterData[group.x].mexpense[rodIdx].expense_title;
-                                   mFilterData[group.x].title;
-                               return BarTooltipItem(toolTipName, TextStyle(
-                                 color: Colors.white,
-                                 fontWeight: FontWeight.bold,
-                                 fontSize: 18,
-                               ),);
-
-                             }
-
-                           )
-                         ),
-                            titlesData: FlTitlesData(
-
-                              show: true,
-
-                              rightTitles:  AxisTitles(
-                                sideTitles: SideTitles(showTitles:false),
-                              ),
-                              topTitles:  AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              bottomTitles:  AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: (value, meta){
-                                    return SideTitleWidget(
-                                      axisSide: meta.axisSide,
-                                      space: 16,
-                                      child: //Text(value.toString()),
-                                      Text(
-                                        (mFilterData[value.toInt()].title
-                                            .toString())
-                                      ),
-
-                                    );
-
-                                  },
-                                  reservedSize: 35,
-                                ),
-                              ),
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                 //maxIncluded: true,
-                                  //minIncluded: true,
-
-                                  showTitles: true,
-
-                                  getTitlesWidget: (value, meta){
-                                    return SideTitleWidget(
-
-                                      axisSide: meta.axisSide,
-                                      space: 1,
-
-                                      child: Text(value.toString(),style: TextStyle(fontSize: 12),)
-
-                                      //Text(alldata[value.toInt()].expene_type.toString()),
-
-                                    );
-
-                                  },
-
-                                  reservedSize: 40,
-
+              ),
+            ),
+            SizedBox(
+              height: 15,
+            ),
+          ],
+                  );
+      }
+    );
+  }
+  Widget afeterGraph(){
+    return  LayoutBuilder(
+      builder: (context,constraints) {
+        return Column(
+          children: [  Padding(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 6.0, vertical: 10),
+            child: Container(
+              width: constraints.maxWidth,
+              child: FittedBox(
+                child:
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Spending Details',
+                      style: TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      'Your expenses are devided into 6 categories',
+                      style: TextStyle(
+                          fontSize: 14, color: const Color(0xFF9396A9)),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Stack(
+                      children: [
+                        Container(
+                         
+                          width: 318,
+                          // width: double.infinity,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF65DA94),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
                         ),
-
-
-                        ),
-                            ),
-                          //borderData: FlBorderData(show: false),
-                          gridData: FlGridData(show: false),
-                          barGroups: mbars,
-                        ) );
-                      /*  return BarChart(
-                          BarChartData(
-                            barTouchData: BarTouchTooltipData(
-                              getTooltipColor:
-                            )
-                          )
-                        );*/
-                      }else{
-                        return Center(
-                          child: Text("no expense yet"),
-                        );
-                      }
-                    }
-                    return Container();
-
-                }),
-                ),
-                SizedBox(
-                  height: 15,
-                ),
-                Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 6.0, vertical: 10),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Spending Details',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.w600),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            'Your expenses are devided into 6 categories',
-                            style: TextStyle(
-                                fontSize: 14, color: const Color(0xFF9396A9)),
-                          ),
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Stack(
-                            children: [
-                              Container(
-                                width: 318,
-                                // width: double.infinity,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF65DA94),
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                              ),
-                              Positioned(
-                                child: Container(
-                                  width: 280,
-                                  // width: double.infinity,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFDA6565),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                child: Container(
-                                  width: 260,
-                                  // width: double.infinity,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF66C2DB),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                child: Container(
-                                  width: 200,
-                                  // width: double.infinity,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEBC68F),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                child: Container(
-                                  width: 160,
-                                  // width: double.infinity,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE78BBC),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                child: Container(
-                                  width: 80,
-                                  // width: double.infinity,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF6574D2),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 15),
-                Padding(
-                  padding: const EdgeInsets.all(11.0),
-                  child: SizedBox(
-                    height: 400, // Provide a fixed height
-                    child: GridView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: Carddata.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                        Positioned(
                           child: Container(
+                            width: 280,
+                            // width: double.infinity,
+                            height: 10,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border:
-                              Border.all(color: const Color(0xFFB9D1FF)),
+                              color: const Color(0xFFDA6565),
+                              borderRadius: BorderRadius.circular(3),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
+                          ),
+                        ),
+                        Positioned(
+                          child: Container(
+                            width: 260,
+                            // width: double.infinity,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color:  Color(0xFF66C2DB),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          child: Container(
+                            width: 200,
+                            // width: double.infinity,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color:  Color(0xFFEBC68F),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          child: Container(
+                            width: 160,
+                            // width: double.infinity,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE78BBC),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          child: Container(
+                            width: 80,
+                            // width: double.infinity,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color:  Color(0xFF6574D2),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+            SizedBox(height: 15),
+            Padding(
+              padding: const EdgeInsets.all(11.0),
+              child: GridView.builder(
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: Carddata.length,
+                itemBuilder: (context, index) {
+                  return FittedBox(
+                    //fit: BoxFit.,
+                    child: Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border:
+                          Border.all(color: const Color(0xFFB9D1FF)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child:
+                          Row(
+                            children: [
+                    
+                              Container(
+
+                                height: 40,
+                                width: 35,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(3),
+                                  color: Carddata[index]['containerclr'],
+                                ),
+                                child: Carddata[index]['icon'],
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Column(
+                                mainAxisAlignment:
+                                MainAxisAlignment.center,
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    height: 40,
-                                    width: 35,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(3),
-                                      color: Carddata[index]['containerclr'],
+                                  Text(
+                                    Carddata[index]['name'],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
                                     ),
-                                    child: Carddata[index]['icon'],
                                   ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          Carddata[index]['name'],
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        Text(
-                                          Carddata[index]['price'],
-                                          style: TextStyle(
-                                              color: const Color(0xFFF0A7D2),
-                                              fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
+                                  Text(
+                                    Carddata[index]['price'],
+                                    style: TextStyle(
+                                        color: const Color(0xFFF0A7D2),
+                                        fontSize: 14),
                                   ),
                                 ],
                               ),
-                            ),
+                            ],
                           ),
-                        );
-                      },
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 11,
-                        crossAxisSpacing: 11,
-                        childAspectRatio: 3 / 2,
+                        ),
                       ),
                     ),
-                  ),
+                  );
+                },
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 11,
+                  crossAxisSpacing: 11,
+                  childAspectRatio: 3 / 2,
                 ),
-
-              ],
-            ),
-          ),
-        ),
-      ),
+              ),
+            ),],
+        );
+      }
     );
   }
+
   void FilterExpenseDteWise(List<expenseModel> allExp) {
     mFilterData.clear();
     List<String> uniqueDates = [];
@@ -621,7 +708,10 @@ void initState(){
 
       mFilterData.add(FilterExpenseModel(
           title: eachdate, totalAmt: totalAmt.round(), mexpense: eachDayExp));
-
     }
   }
+  Color _getRandomColor() {
+    return Color((Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+  }
+
 }
